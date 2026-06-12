@@ -8,6 +8,10 @@ import RankingTable from '../components/ranking/RankingTable'
 import MatchTimeline from '../components/matches/MatchTimeline'
 import ProfileModal from '../components/profiles/ProfileModal'
 import { Profile } from '../types'
+import { getBrowserId } from '../lib/browserId'
+import { updateDoc, doc } from 'firebase/firestore'
+import { db } from '../lib/firebase'
+import toast from 'react-hot-toast'
 
 export default function HomePage() {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null)
@@ -26,7 +30,24 @@ export default function HomePage() {
     setIsEditingBets(false)
   }
 
-  const handleStartEdit = (id: string) => {
+  const handleStartEdit = async (id: string) => {
+    const profile = profiles.find(p => p.id === id)
+    if (!profile) return
+
+    const browserId = getBrowserId()
+    if (profile.browserId && profile.browserId !== browserId) {
+      toast.error('Sem permissão: este perfil pertence a outro dispositivo')
+      return
+    }
+
+    if (!profile.browserId) {
+      try {
+        await updateDoc(doc(db, 'profiles', id), { browserId })
+      } catch (err) {
+        console.error('Erro ao vincular perfil:', err)
+      }
+    }
+
     setSelectedProfileId(id)
     setIsEditingBets(true)
   }

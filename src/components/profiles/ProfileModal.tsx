@@ -5,6 +5,7 @@ import {
 import { db } from '../../lib/firebase'
 import { Profile } from '../../types'
 import toast from 'react-hot-toast'
+import { getBrowserId } from '../../lib/browserId'
 
 interface Props {
   profile?: Profile
@@ -30,13 +31,24 @@ export default function ProfileModal({ profile, onClose }: Props) {
 
     setSaving(true)
     try {
+      const browserId = getBrowserId()
       if (isEditing) {
-        await updateDoc(doc(db, 'profiles', profile.id), { name: name.trim(), color })
+        if (profile.browserId && profile.browserId !== browserId) {
+          toast.error('Sem permissão: você não é dono deste perfil')
+          setSaving(false)
+          return
+        }
+        await updateDoc(doc(db, 'profiles', profile.id), {
+          name: name.trim(),
+          color,
+          ...(!profile.browserId ? { browserId } : {})
+        })
         toast.success('Perfil atualizado ✓')
       } else {
         await addDoc(collection(db, 'profiles'), {
           name: name.trim(),
           color,
+          browserId,
           createdAt: serverTimestamp(),
         })
         toast.success('Perfil criado ✓')

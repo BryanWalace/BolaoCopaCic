@@ -113,8 +113,61 @@ function AdminMatchRow({ match }: { match: Match }) {
 }
 
 export default function AdminPage() {
+  const [pin, setPin] = useState('')
+  const [isPinVerified, setIsPinVerified] = useState(
+    () => sessionStorage.getItem('admin_authenticated') === 'true'
+  )
   const { matches, loading } = useMatches()
   const [filter, setFilter] = useState('')
+
+  const handleVerifyPin = (e: React.FormEvent) => {
+    e.preventDefault()
+    const correctPin = import.meta.env.VITE_ADMIN_PIN || '1234'
+    if (pin === correctPin) {
+      sessionStorage.setItem('admin_authenticated', 'true')
+      setIsPinVerified(true)
+      toast.success('Acesso liberado ✓')
+    } else {
+      toast.error('PIN incorreto ❌')
+      setPin('')
+    }
+  }
+
+  if (!isPinVerified) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20 flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
+        <div className="card p-6 w-full border border-gold/30 bg-card-dark shadow-xl text-center">
+          <div className="text-4xl mb-4">⚙️</div>
+          <h2 className="font-display text-2xl text-white tracking-wide mb-2">ÁREA ADMINISTRATIVA</h2>
+          <p className="text-gray-400 text-sm mb-6">
+            Insira o PIN de 4 dígitos para acessar as configurações de administrador.
+          </p>
+
+          <form onSubmit={handleVerifyPin} className="space-y-4">
+            <input
+              type="password"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              placeholder="••••"
+              value={pin}
+              onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              className="w-32 bg-bg-dark border border-border-dim rounded-xl px-4 py-3 text-center text-2xl font-bold tracking-widest text-white focus:outline-none focus:border-gold transition-colors mx-auto block"
+              autoFocus
+            />
+
+            <button
+              type="submit"
+              disabled={pin.length !== 4}
+              className="w-full btn-primary py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+            >
+              Entrar
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
 
   const filtered = matches.filter(m => {
     const q = filter.toLowerCase()

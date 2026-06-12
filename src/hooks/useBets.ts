@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { collection, onSnapshot, query, where, doc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore'
+import { collection, onSnapshot, query, where, doc, setDoc, getDoc, serverTimestamp, Timestamp } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { Bet, Winner } from '../types'
 import toast from 'react-hot-toast'
-import { isToday } from 'date-fns'
+import { getBrowserId } from '../lib/browserId'
 
 export function useBets(profileId: string | null) {
   const [bets, setBets] = useState<Bet[]>([])
@@ -34,11 +34,24 @@ export function useBets(profileId: string | null) {
   ) => {
     if (!profileId) return
 
-    // Block if match already occurred on a past day
-    const matchDt = matchDate.toDate()
-    const isLocked = !isToday(matchDt) && matchDt.getTime() <= Date.now()
+    // Check profile ownership
+    try {
+      const profileSnap = await getDoc(doc(db, 'profiles', profileId))
+      if (profileSnap.exists()) {
+        const profileData = profileSnap.data()
+        if (profileData.browserId && profileData.browserId !== getBrowserId()) {
+          toast.error('Sem permissão: este perfil pertence a outro dispositivo')
+          return
+        }
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Erro ao verificar permissão')
+      return
+    }
 
-    if (isLocked) {
+    // Block if match already started (strict time lock)
+    if (matchDate.toMillis() <= Date.now()) {
       toast.error('Jogo já encerrado — palpite bloqueado 🔒')
       return
     }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Profile } from '../../types'
 import ProfileModal from './ProfileModal'
+import { getBrowserId } from '../../lib/browserId'
 
 interface Props {
   profiles: Profile[]
@@ -72,14 +73,23 @@ export default function ProfileList({ profiles, selectedId, isEditingBets, onSel
                   <div className="h-6 w-px bg-border-dim" />
 
                   {/* Gear button (Edit bets mode) */}
-                  <button
-                    onClick={() => onStartEdit(p.id)}
-                    className={`px-3 py-3 hover:bg-white/5 transition-colors flex items-center justify-center text-sm
-                      ${isEditingThis ? 'text-green-400' : 'text-gray-400 hover:text-white'}`}
-                    title="Editar palpites"
-                  >
-                    ⚙️
-                  </button>
+                  {(!p.browserId || p.browserId === getBrowserId()) ? (
+                    <button
+                      onClick={() => onStartEdit(p.id)}
+                      className={`px-3 py-3 hover:bg-white/5 transition-colors flex items-center justify-center text-sm
+                        ${isEditingThis ? 'text-green-400' : 'text-gray-400 hover:text-white'}`}
+                      title="Editar palpites"
+                    >
+                      ⚙️
+                    </button>
+                  ) : (
+                    <div
+                      className="px-3 py-3 flex items-center justify-center text-sm text-gray-600 cursor-not-allowed select-none"
+                      title="Apenas o criador deste perfil pode palpitar"
+                    >
+                      🔒
+                    </div>
+                  )}
                 </div>
               )
             })}

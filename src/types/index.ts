@@ -4,6 +4,7 @@ export interface Profile {
   id: string
   name: string
   color: string
+  browserId?: string
   createdAt: Timestamp
 }
 
