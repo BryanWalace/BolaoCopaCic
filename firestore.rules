@@ -15,15 +15,14 @@ service cloud.firestore {
       allow write: if true;
     }
 
-    // Bets: public read, write only if match hasn't started yet
+    // Bets: public read, write if match has no result and is in the future or occurred within 24 hours
     match /bets/{betId} {
       allow read: if true;
 
-      // Allow create/update only if the referenced match's date is in the future
       allow create, update: if
-        get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.date > request.time;
+        get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.resultA == null &&
+        request.time - get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.date < duration.value(24, 'h');
 
-      // Allow delete freely (client-side won't use this but good to have)
       allow delete: if true;
     }
   }

@@ -1,4 +1,6 @@
 import { useMemo } from 'react'
+import { isToday, format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { Match, Phase } from '../../types'
 import MatchCard from './MatchCard'
 
@@ -60,11 +62,24 @@ export default function MatchTimeline({ matches, profileId, isEditingBets = fals
     return sorted
   }, [matches])
 
-  // Get next 4 upcoming matches that haven't started yet and have no results
+  // Get matches scheduled for today that don't have results yet
+  const todayMatches = useMemo(() => {
+    return matches
+      .filter(m => {
+        const matchDate = m.date.toDate()
+        return isToday(matchDate) && m.resultA == null
+      })
+      .sort((a, b) => a.date.toMillis() - b.date.toMillis())
+  }, [matches])
+
+  // Get next 4 upcoming matches (excluding today's matches) that haven't started yet and have no results
   const upcomingMatches = useMemo(() => {
     const now = new Date()
     return matches
-      .filter(m => m.date.toDate() > now && m.resultA == null)
+      .filter(m => {
+        const matchDate = m.date.toDate()
+        return matchDate > now && !isToday(matchDate) && m.resultA == null
+      })
       .sort((a, b) => a.date.toMillis() - b.date.toMillis())
       .slice(0, 4)
   }, [matches])
@@ -101,9 +116,34 @@ export default function MatchTimeline({ matches, profileId, isEditingBets = fals
 
   return (
     <div className="relative">
+      {/* Today's matches grid */}
+      {todayMatches.length > 0 && (
+        <div className="mb-8 bg-card-dark/40 border border-gold/30 rounded-2xl p-4 sm:p-5 shadow-[0_0_15px_rgba(212,175,55,0.05)] animate-slide-up">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xl animate-pulse">⚽</span>
+              <h3 className="font-display text-xl text-gold tracking-wide">JOGOS DE HOJE</h3>
+            </div>
+            <span className="text-xs font-semibold px-3 py-1 bg-gold/10 text-gold rounded-full border border-gold/20 capitalize">
+              📅 {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {todayMatches.map(match => (
+              <MatchCard 
+                key={match.id} 
+                match={match} 
+                profileId={profileId} 
+                isEditingBets={isEditingBets} 
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Upcoming matches grid */}
       {upcomingMatches.length > 0 && (
-        <div className="mb-8 bg-card-dark/40 border border-gold/20 rounded-2xl p-4 sm:p-5">
+        <div className="mb-8 bg-card-dark/40 border border-border-dim rounded-2xl p-4 sm:p-5 animate-slide-up">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-xl">🕒</span>
             <h3 className="font-display text-xl text-gold tracking-wide">PRÓXIMOS JOGOS</h3>

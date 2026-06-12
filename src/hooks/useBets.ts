@@ -3,6 +3,7 @@ import { collection, onSnapshot, query, where, doc, setDoc, serverTimestamp, Tim
 import { db } from '../lib/firebase'
 import { Bet, Winner } from '../types'
 import toast from 'react-hot-toast'
+import { isToday } from 'date-fns'
 
 export function useBets(profileId: string | null) {
   const [bets, setBets] = useState<Bet[]>([])
@@ -33,8 +34,11 @@ export function useBets(profileId: string | null) {
   ) => {
     if (!profileId) return
 
-    // Block if match already started
-    if (matchDate.toMillis() <= Date.now()) {
+    // Block if match already occurred on a past day
+    const matchDt = matchDate.toDate()
+    const isLocked = !isToday(matchDt) && matchDt.getTime() <= Date.now()
+
+    if (isLocked) {
       toast.error('Jogo já encerrado — palpite bloqueado 🔒')
       return
     }

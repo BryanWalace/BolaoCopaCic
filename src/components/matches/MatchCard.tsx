@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { format } from 'date-fns'
+import { format, isToday } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Match, Bet } from '../../types'
 import { useBets } from '../../hooks/useBets'
@@ -46,7 +46,8 @@ interface BetInputProps {
 
 function BetInputSection({ match, profileId, existingBet }: BetInputProps) {
   const matchDate = match.date.toDate()
-  const isLocked = matchDate <= new Date()
+  const hasResult = match.resultA != null && match.resultB != null
+  const isLocked = hasResult || (!isToday(matchDate) && matchDate <= new Date())
 
   const [scoreA, setScoreA] = useState<number>(existingBet?.scoreA ?? 0)
   const [scoreB, setScoreB] = useState<number>(existingBet?.scoreB ?? 0)
@@ -180,8 +181,8 @@ export default function MatchCard({ match, profileId, isEditingBets = false }: P
   const bet = getBetForMatch(match.id)
 
   const matchDate = match.date.toDate()
-  const isFinished = matchDate <= new Date()
   const hasResult = match.resultA != null && match.resultB != null
+  const isFinished = hasResult || (!isToday(matchDate) && matchDate <= new Date())
 
   const phaseClass = phaseColors[match.phase] ?? 'bg-gray-500/20 text-gray-400'
 
