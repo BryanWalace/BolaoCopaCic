@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Profiles: public read + write (no auth required)
+    match /profiles/{profileId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Matches: public read + write (admins edit results manually)
+    match /matches/{matchId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Bets: public read, write only if match hasn't started yet
+    match /bets/{betId} {
+      allow read: if true;
+
+      // Allow create/update only if the referenced match's date is in the future
+      allow create, update: if
+        get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.date > request.time;
+
+      // Allow delete freely (client-side won't use this but good to have)
+      allow delete: if true;
+    }
+  }
+}

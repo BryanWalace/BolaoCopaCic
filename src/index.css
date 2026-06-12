@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #0A0A0A;
+    color: #E5E5E5;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #111;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-card-dark border border-border-dim rounded-xl;
+  }
+
+  .btn-primary {
+    @apply bg-usa-blue hover:bg-blue-800 text-white font-semibold px-4 py-2 rounded-lg transition-all duration-200 active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent hover:bg-card-hover border border-border-dim text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-all duration-200;
+  }
+
+  .score-input {
+    @apply w-12 h-10 text-center bg-bg-dark border border-border-dim rounded-lg text-white font-bold text-lg focus:outline-none focus:border-gold transition-colors;
+  }
+
+  .phase-badge {
+    @apply text-xs font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider;
+  }
+}
